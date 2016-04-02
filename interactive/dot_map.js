@@ -156,10 +156,10 @@ function drawCoffee(data,svg){
         .attr("stroke","#000")
         .on("click",function(d){
             d3.select("#chartName").html(d.name)
-            d3.selectAll("#map svg circle").style("fill","#fff")
-            d3.select(this).style("fill","#000")
+            d3.selectAll("#map svg circle").transition().duration(300).style("fill","#fff").style("opacity",.2)
+            d3.select(this).transition().duration(300).style("fill","#000").style("opacity",1)
             for(var i in d["independent"]){
-                d3.selectAll("#map ."+cleanString(i)).style("fill","#aaa")
+                d3.selectAll("#map ."+cleanString(i)).transition().duration(300).style("fill","#aaa").style("opacity",1)
             }
             for(var i in d["chain"]){
                 d3.select("#map svg").append("circle")
