@@ -1,0 +1,58 @@
+html, body{
+    font-family:"Baskerville"; font-weight: lighter;
+    font-color:#000;
+}
+
+#header{
+    position:fixed;
+    top:0px;
+    left:0px;
+    margin:30px;
+}
+#title{
+    padding:5px;
+    font-size:52px;
+    font-weight:100;
+    letter-spacing:2px;
+}
+#subtitle{
+    padding:5px;
+    font-size:24px;
+    font-weight:100;
+}
+#map{
+    position:relative;
+    float:top;
+    width:90%;
+    height:90%;
+    overflow:hidden;
+}
+#charts{
+    position:fixed;
+    top:0px;
+    right:0px;
+    width:30%;
+    height:90%;
+    border:1px dotted black;
+    margin:20px;
+    padding:10px;
+    font-size:18px;
+    z-index:999;  
+    background-color:rgba(255,255,255,.5);  
+}
+#adversityC{border-bottom:1px dotted black;}
+#chartName{border-bottom:1px dotted black;}
+#diversityC{border-bottom:1px dotted black;}
+#connectivity{border-bottom:1px dotted black;}
+#population{border-bottom:1px dotted black;}
+#quality{border-bottom:1px dotted black;}
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
