@@ -23,7 +23,7 @@
 <body>
   <div id = "header">
     <div id = "title">Ecosystems </div>
-    <div id = "subtitle">Independent Coffee Shops</div>
+    <div id = "subtitle">Assessing Independent Coffee Shops for placement of Parklets</div>
   </div>
 <div id = "map"></div>
 <div id = "description"></div>
@@ -36,7 +36,7 @@
     </div>
     <div id = "adversityC"></div>
     <div id = "diversity"><strong>Diversity</strong> </div>
-    <div id = "diversityC">div</div>
+    <div id = "diversityC"></div>
   </div>
   <div id = "population"><strong>Demography</strong></div>
   <div id = "quality"><strong>Qualities</strong>
@@ -56,10 +56,14 @@
 
 <script type="text/javascript" charset="utf-8">
   var outline = "data/cambridge.geojson"
+  var buildings = "data/buildings.geojson"
   var coffeeDistances = "data/coffeeShopDistances_halfmile.json"
   var busDistances = "data/busStops_quartermile.json"
   var bikeShareDistances = "data/bikeshare_halfmile.json"
   var bikeShareTraffic ="data/bikeShare_traffic.json"
+  var businesses ="data/businesses_quartermile.json"
+  var businessTypes ="data/cambridge_businessTypes_count.json"
+  var trees = "data/trees_quartermile.json"
 </script>
 
 <script src="dot_map.js"></script>

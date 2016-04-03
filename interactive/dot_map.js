@@ -1,29 +1,34 @@
 $(function() {
 	queue()
 		.defer(d3.json,outline)
+        .defer(d3.json,buildings)
 		.defer(d3.json,coffeeDistances)
 		.defer(d3.json,busDistances)
         .defer(d3.json,bikeShareDistances)
 		.defer(d3.json,bikeShareTraffic)
+        .defer(d3.json,businesses)
+        .defer(d3.json,businessTypes)
+        .defer(d3.json,trees)
         .await(dataDidLoad);
 })
 
 $("#topDifferences .hideTop").hide()
 
-function dataDidLoad(error,outline,coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic) {
+function dataDidLoad(error,outline,buildings,coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees) {
 //make 1 svg for everything
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     var mapSvg = d3.select("#map").append("svg").attr("width",x*.9).attr("height",y*.9)
     drawBuildings(outline,mapSvg)
+    drawBuildings(buildings,mapSvg)
     //uses csv version
     //this version of the data uses shortened, not exact lat and lngs
     //for(var tract in children.tracts){
     //    var tractNumber = children.tracts[tract]
     //    drawDots(children.points[tractNumber],mapSvg,tractNumber)
     //}
-    drawCoffee(coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,mapSvg)
+    drawCoffee(coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,mapSvg)
 
 }
 var zoom = d3.behavior.zoom()
@@ -117,15 +122,16 @@ function drawStopsBar(distance,coffee){
 function drawBikeShare(routes,bikeShareTraffic,coffee){
    // console.log(Object.keys(routes).length)
     var totalTraffic = 0
+    var routeIndex = 0
     for(var route in routes){
+        var color = bikeColors[routeIndex%9]
         totalTraffic+=bikeShareTraffic[route].traffic
-        drawPath(routes[route],bikeShareTraffic[route].traffic,coffee)
+        drawPath(routes[route],bikeShareTraffic[route].traffic,coffee,color)
     }
     d3.select("#bike").html("<strong>Bike Share</strong> Over the course of a day, there is an average of "+Math.round(totalTraffic/365)+" trips being make on "+ Object.keys(routes).length+ " popular bike share routes within .5 miles")   
 }
-function drawPath(route,traffic,coffee){
+function drawPath(route,traffic,coffee,color){
    // console.log(route)
-    console.log(traffic)
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
@@ -152,7 +158,7 @@ function drawPath(route,traffic,coffee){
     mapSvg.append("path")
           .attr("d", line(route))
           .attr("fill","none")
-          .attr("stroke","#000")
+          .attr("stroke",color)
           .attr("stroke-width",trafficScale(traffic))
           .attr("opacity",.3)
           .attr("class","routes ."+cleanString(coffee))
@@ -238,7 +244,109 @@ function drawRadius(lat,lng){
     .attr("opacity",.1)
 }
 //var chains = ["Starbucks","Dunkin' Donuts","Peet's Coffee & Tea","Au Bon Pain","Dunkin Donuts","Tatte Fine Cookies and Cakes","Tealuxe","Starbucks Coffee"]
-function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,svg){
+var businessColors =["#597FC4",
+"#929094",
+"#5778E9",
+"#86A6C4",
+"#488EEE",
+"#8986AA",
+"#8989E3",
+"#5486AD",
+"#8D9EDC",
+"#55A4E4"]
+var treeColors = ["#91E3A5","#76E837","#6B865D","#5ACC47","#547C35","#5EDF81","#ADDC57","#53A76E","#599A30","#B9D989"] 
+var bikeColors =["#8C3E57",
+"#B02994",
+"#705951",
+"#892570",
+"#421E28",
+"#B12967",
+"#754752",
+"#53143D",
+"#8B416E",
+"#6B1535"]
+function formatBusinessTypes(types){
+    typesArray = []
+    for(var t in types){
+        if(t!="uncatagorized" && t!="bus_station"){
+            typesArray.push([t,types[t]])
+        }
+    }
+    typesArray.sort(function(a, b) {return b[1]-a[1]})
+    var topFive = typesArray.slice(0,5)
+    var topFiveString =""
+    for(var j in topFive){
+        topFiveString+= topFive[j][0]+": "+topFive[j][1]+"<br/>"
+    }
+    return topFiveString
+}
+function drawDiversityMap(businesses,types,allbusinessTypes){
+    //console.log(jsonToArray(businesses))
+    var w = window
+    x = w.innerWidth || e.clientWidth || g.clientWidth;
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+    
+    var businessArray = jsonToArray(businesses)
+    var topFive = formatBusinessTypes(types)
+    var totalBusinesses =businessArray.length
+    d3.select("#diversity").html("<strong>Diversity</strong> There are "+totalBusinesses+" businesses within .25 miles. <br/>The top businesses types are:<br/>"+topFive)
+    
+    var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var mapSvg = d3.select("#map svg")
+    mapSvg.selectAll(".diversity")
+    .data(businessArray)
+    .enter()
+    .append("circle")
+    .attr("cx",function(d){
+        var lat = parseFloat(d.lat)
+        var lng = parseFloat(d.lng)
+        //to get projected dot position, use this basic formula
+        var projectedLng = projection([lng,lat])[0]
+        return projectedLng
+    })
+    .attr("cy",function(d){
+        var lat = parseFloat(d.lat)
+        var lng = parseFloat(d.lng)
+        var projectedLat = projection([lng,lat])[1]
+        return projectedLat
+    })
+    .attr("r",1)
+    .attr("opacity",.5)
+    .attr("fill",function(){
+        return businessColors[parseInt(Math.random()*9)]
+    })
+}
+function drawTreesMap(trees){
+    var w = window
+    x = w.innerWidth || e.clientWidth || g.clientWidth;
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+    var treesArray = jsonToArray(trees["trees"])
+    var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var mapSvg = d3.select("#map svg")
+    mapSvg.selectAll(".diversity")
+    .data(treesArray)
+    .enter()
+    .append("circle")
+    .attr("cx",function(d){
+        var lat = parseFloat(d.lat)
+        var lng = parseFloat(d.lng)
+        //to get projected dot position, use this basic formula
+        var projectedLng = projection([lng,lat])[0]
+        return projectedLng
+    })
+    .attr("cy",function(d){
+        var lat = parseFloat(d.lat)
+        var lng = parseFloat(d.lng)
+        var projectedLat = projection([lng,lat])[1]
+        return projectedLat
+    })
+    .attr("r",1)
+    .attr("opacity",.5)
+    .attr("fill",function(){
+        return "green"
+    })
+}
+function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,businessTypes,trees,svg){
     var arrayData = jsonToArray(data)
     
     coffeeStats(arrayData)
@@ -309,7 +417,8 @@ function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,svg){
            // drawRadius(d.lat,d.lng)
             drawBusiness(d)
             drawBikeShare(bikeDistances[d.name].routes,bikeShareTraffic,d.name)
-            
+            drawDiversityMap(businesses[d.name]["businesses"],businesses[d.name]["types"],businessTypes)
+            drawTreesMap(trees[d.name])
             
             d3.select("#description").html(d.name+" in Cambridge is .... <br/>Has te indoctum sadipscing, molestiae necvertitur. Ius tibique mediocritatem ei, soleat suavitate elaboraret sit et.")
         })
@@ -335,6 +444,7 @@ function drawBuildings(geoData,svg){
 		.style("fill","#fff")
 		.style("stroke","#000")
 	    .style("opacity",.2)
+    .attr("stroke-width",.5)
         .call(zoom)
     
 }
