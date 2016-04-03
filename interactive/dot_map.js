@@ -3,12 +3,14 @@ $(function() {
 		.defer(d3.json,outline)
 		.defer(d3.json,coffeeDistances)
 		.defer(d3.json,busDistances)
-		.await(dataDidLoad);
+        .defer(d3.json,bikeShareDistances)
+		.defer(d3.json,bikeShareTraffic)
+        .await(dataDidLoad);
 })
 
 $("#topDifferences .hideTop").hide()
 
-function dataDidLoad(error,outline,coffeeDistances,busDistances) {
+function dataDidLoad(error,outline,coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic) {
 //make 1 svg for everything
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
@@ -21,9 +23,15 @@ function dataDidLoad(error,outline,coffeeDistances,busDistances) {
     //    var tractNumber = children.tracts[tract]
     //    drawDots(children.points[tractNumber],mapSvg,tractNumber)
     //}
-    drawCoffee(coffeeDistances,busDistances,mapSvg)
+    drawCoffee(coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,mapSvg)
 
 }
+var zoom = d3.behavior.zoom()
+    .translate([0, 0])
+    .scale(1)
+    .scaleExtent([1, 20])
+    .on("zoom", zoomed);
+    
 function jsonToArray(data){
     var newArray = []
     for(var item in data){
@@ -43,7 +51,7 @@ function cleanString(string){
 }
 function drawBus(data){
     var arrayData = jsonToArray(data)
-    var chartSvg = d3.select("#busC").append("svg").attr("width",400).attr("height",200)
+    var chartSvg = d3.select("#busC").append("svg").attr("width",400).attr("height",150)
     for (var coffee in arrayData){
         var coffeeName = arrayData[coffee]["name"]
         for(var s in arrayData[coffee]["stops"]){
@@ -105,6 +113,50 @@ function drawStopsBar(distance,coffee){
     .attr("opacity",.1)
     .attr("class",cleanString(coffee))
     .attr("transform","translate(20,80)")
+}
+function drawBikeShare(routes,bikeShareTraffic,coffee){
+   // console.log(Object.keys(routes).length)
+    var totalTraffic = 0
+    for(var route in routes){
+        totalTraffic+=bikeShareTraffic[route].traffic
+        drawPath(routes[route],bikeShareTraffic[route].traffic,coffee)
+    }
+    d3.select("#bike").html("<strong>Bike Share</strong> Over the course of a day, there is an average of "+Math.round(totalTraffic/365)+" trips being make on "+ Object.keys(routes).length+ " popular bike share routes within .5 miles")   
+}
+function drawPath(route,traffic,coffee){
+   // console.log(route)
+    console.log(traffic)
+    var w = window
+    x = w.innerWidth || e.clientWidth || g.clientWidth;
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+    
+    var trafficScale = d3.scale.linear().domain([500,4000]).range([.5,5])
+	var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var mapSvg = d3.select("#map svg")
+    var line = d3.svg.line()
+//          .interpolate("cardinal")
+          .x(function(d) {
+            var lat = parseFloat(d[1])
+            var lng = parseFloat(d[0])
+            var projectedLng = projection([lng,lat])[0]
+              return projectedLng
+          })
+          .y(function(d) {
+            var lat = parseFloat(d[1])
+            var lng = parseFloat(d[0])
+            var projectedLat = projection([lng,lat])[1]
+              return projectedLat
+          })
+    
+    
+    mapSvg.append("path")
+          .attr("d", line(route))
+          .attr("fill","none")
+          .attr("stroke","#000")
+          .attr("stroke-width",trafficScale(traffic))
+          .attr("opacity",.3)
+          .attr("class","routes ."+cleanString(coffee))
+          
 }
 function coffeeStats(data){
    // console.log(data)
@@ -186,7 +238,7 @@ function drawRadius(lat,lng){
     .attr("opacity",.1)
 }
 //var chains = ["Starbucks","Dunkin' Donuts","Peet's Coffee & Tea","Au Bon Pain","Dunkin Donuts","Tatte Fine Cookies and Cakes","Tealuxe","Starbucks Coffee"]
-function drawCoffee(data,busDistances,svg){
+function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,svg){
     var arrayData = jsonToArray(data)
     
     coffeeStats(arrayData)
@@ -227,6 +279,9 @@ function drawCoffee(data,busDistances,svg){
             d3.selectAll("#busC svg rect").transition().duration(300).style("fill","#000").style("opacity",.1)
             d3.selectAll("#busC svg ."+cleanString(d.name)).transition().duration(300).style("fill","red").style("opacity",.5)
             
+            d3.selectAll("#map svg .routes").transition().duration(300).style("opacity",0).remove()
+            d3.selectAll("#map svg .routes ."+cleanString(d.name)).transition().duration(300).style("opacity",1)
+            
             drawStopsMap(d.name,busDistances)
             
             for(var i in d["independent"]){
@@ -253,6 +308,10 @@ function drawCoffee(data,busDistances,svg){
             }
            // drawRadius(d.lat,d.lng)
             drawBusiness(d)
+            drawBikeShare(bikeDistances[d.name].routes,bikeShareTraffic,d.name)
+            
+            
+            d3.select("#description").html(d.name+" in Cambridge is .... <br/>Has te indoctum sadipscing, molestiae necvertitur. Ius tibique mediocritatem ei, soleat suavitate elaboraret sit et.")
         })
         .style("opacity",1)
        
@@ -273,7 +332,18 @@ function drawBuildings(geoData,svg){
         .append("path")
 		.attr("class","buildings")
 		.attr("d",path)
-		.style("fill","none")
+		.style("fill","#fff")
 		.style("stroke","#000")
-	    .style("opacity",.5)
+	    .style("opacity",.2)
+        .call(zoom)
+    
+}
+function zoomed() {
+	//console.log("calling zoomed" + d3.event.scale + ", translate: "+ d3.event.translate )
+	map=d3.selectAll("#map path").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	map=d3.selectAll("#map circle").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+  	//map.select("circle").style("stroke-width", 1.5 / d3.event.scale + "px").style("font-size",1.5 / d3.event.scale + "px");
+	//var newScaleDistance = Math.round((5/d3.event.scale)* 100) / 100
+	//d3.select("#scale .scale-text").text(newScaleDistance+"km")
+	//window.location.hash = JSON.stringify([d3.event.translate, d3.event.scale])
 }

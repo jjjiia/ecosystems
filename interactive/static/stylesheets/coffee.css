@@ -8,12 +8,15 @@ html, body{
     top:0px;
     left:0px;
     margin:30px;
+    z-index:999;  
+    
 }
 #title{
     padding:5px;
     font-size:52px;
     font-weight:100;
     letter-spacing:2px;
+    
 }
 #subtitle{
     padding:5px;
@@ -27,21 +30,31 @@ html, body{
     height:90%;
     overflow:hidden;
 }
+#description{
+    position:fixed;
+    top:40px;
+    right:35%;
+    width:300px;
+    height:200px;
+    background-color:rgba(255,255,255,.5);  
+    font-size:20px;
+}
 #charts{
     position:fixed;
     top:0px;
     right:0px;
     width:30%;
     height:90%;
-    border:1px dotted black;
+    border:1px solid black;
     margin:20px;
-    padding:10px;
+    padding:30px;
     font-size:18px;
     z-index:999;  
     background-color:rgba(255,255,255,.5);  
 }
+
 #adversityC{border-bottom:1px dotted black;}
-#chartName{border-bottom:1px dotted black;}
+#chartName{border-bottom:1px dotted black;font-size:24px;}
 #diversityC{border-bottom:1px dotted black;}
 #connectivity{border-bottom:1px dotted black;}
 #population{border-bottom:1px dotted black;}

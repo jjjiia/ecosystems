@@ -26,6 +26,8 @@
     <div id = "subtitle">Independent Coffee Shops</div>
   </div>
 <div id = "map"></div>
+<div id = "description"></div>
+
 <div id = "charts">
   <div id = "chartName">name:</div>
   <div id = "business">
@@ -35,7 +37,6 @@
     <div id = "adversityC"></div>
     <div id = "diversity"><strong>Diversity</strong> </div>
     <div id = "diversityC">div</div>
-    
   </div>
   <div id = "population"><strong>Demography</strong></div>
   <div id = "quality"><strong>Qualities</strong>
@@ -46,9 +47,8 @@
   <div id = "connectivity"><strong>Connectivity</strong>
     <div id = "bus">Bus</div>
     <div id = "busC"></div>
-    
+    <div id = "bike"><strong>Bike Share</strong><br/></div>
     <div id = "train"><strong>train</strong> </div>
-    <div id = "bike"><strong>bike</strong> </div>
   </div>
 </div>
 
@@ -58,6 +58,8 @@
   var outline = "data/cambridge.geojson"
   var coffeeDistances = "data/coffeeShopDistances_halfmile.json"
   var busDistances = "data/busStops_quartermile.json"
+  var bikeShareDistances = "data/bikeshare_halfmile.json"
+  var bikeShareTraffic ="data/bikeShare_traffic.json"
 </script>
 
 <script src="dot_map.js"></script>
