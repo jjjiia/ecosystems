@@ -2,12 +2,13 @@ $(function() {
 	queue()
 		.defer(d3.json,outline)
 		.defer(d3.json,coffeeDistances)
+		.defer(d3.json,busDistances)
 		.await(dataDidLoad);
 })
 
 $("#topDifferences .hideTop").hide()
 
-function dataDidLoad(error,outline,coffeeDistances) {
+function dataDidLoad(error,outline,coffeeDistances,busDistances) {
 //make 1 svg for everything
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
@@ -20,7 +21,7 @@ function dataDidLoad(error,outline,coffeeDistances) {
     //    var tractNumber = children.tracts[tract]
     //    drawDots(children.points[tractNumber],mapSvg,tractNumber)
     //}
-    drawCoffee(coffeeDistances,mapSvg)
+    drawCoffee(coffeeDistances,busDistances,mapSvg)
 
 }
 function jsonToArray(data){
@@ -28,24 +29,89 @@ function jsonToArray(data){
     for(var item in data){
         var entry = {}
         entry["name"]=item
-        entry["chain"]=data[item]["chain"]
-        entry["independent"]=data[item]["independent"]
-        entry["lat"]=data[item]["lat"]
-        entry["lng"]=data[item]["lng"]
+        for(var key in data[item]){
+            entry[key]=data[item][key]
+        }
         newArray.push(entry)
     }
     return newArray
 }
+
 function cleanString(string){
     var newString = string.replace(/[^A-Z]/ig, "");
     return newString
+}
+function drawBus(data){
+    var arrayData = jsonToArray(data)
+    var chartSvg = d3.select("#busC").append("svg").attr("width",400).attr("height",200)
+    for (var coffee in arrayData){
+        var coffeeName = arrayData[coffee]["name"]
+        for(var s in arrayData[coffee]["stops"]){
+            var stopData = arrayData[coffee]["stops"][s]
+            drawStopsBar(stopData["distance"],coffeeName)
+        }
+    }
+    chartSvg.append("text").text("distance of bus stops from coffee").attr("x",70).attr("y",70)
+    var distanceScale =d3.scale.linear().domain([0,.25]).range([1,350])
+    var xAxis = d3.svg.axis()
+        .scale(distanceScale)
+        .tickValues(distanceScale.domain())
+        .orient("top")
+        
+    chartSvg.append("g")
+        .attr("class", "x axis")
+        .call(xAxis)
+        .attr("transform","translate(20,79)");
+}
+function drawStopsMap(coffee,busData){
+    var w = window
+    x = w.innerWidth || e.clientWidth || g.clientWidth;
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+    
+	var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var stopsArray = jsonToArray(busData[coffee]["stops"])
+    var svg = d3.select("#map svg")
+    svg.selectAll(".buses")
+    .data(stopsArray)
+    .enter()
+    .append("circle")
+    .attr("cx",function(d){
+        var lat = parseFloat(d.lat)
+        var lng = parseFloat(d.lng)
+        //to get projected dot position, use this basic formula
+        var projectedLng = projection([lng,lat])[0]
+        return projectedLng
+    })
+    .attr("cy",function(d){
+        var lat = parseFloat(d.lat)
+        var lng = parseFloat(d.lng)
+        var projectedLat = projection([lng,lat])[1]
+        return projectedLat
+    })
+    .attr("r",2)
+    .attr("class","buses_"+cleanString(coffee))
+    .attr("fill","red")
+    
+    d3.select("#bus").html("<strong>Bus</strong>: There are "+stopsArray.length+" bus stops within a .25 mile radius")
+}
+function drawStopsBar(distance,coffee){
+    var distanceScale =d3.scale.linear().domain([0,.25]).range([0,350])
+    var chart = d3.select("#busC svg")
+    chart.append("rect")
+    .attr("x",distanceScale(distance))
+    .attr("y",0)
+    .attr("width",2)
+    .attr("height",40)
+    .attr("opacity",.1)
+    .attr("class",cleanString(coffee))
+    .attr("transform","translate(20,80)")
 }
 function coffeeStats(data){
    // console.log(data)
    // data.sort(function(a, b) {return Object.keys(b.independent).length - Object.keys(a.independent).length})
     var width = 400
     var chartSvg = d3.select("#adversityC").append("svg").attr("width",width).attr("height",200)
-    var sizeScale = d3.scale.linear().domain([0,10]).range([0,10*20])
+    var sizeScale = d3.scale.linear().domain([0,10]).range([1,10*20-1])
     var sizeScaleY = d3.scale.linear().domain([0,5]).range([0,5*20])
     chartSvg.selectAll("rect")
     .data(data)
@@ -71,7 +137,7 @@ function coffeeStats(data){
     chartSvg.append("g")
         .attr("class", "x axis")
         .call(xAxis)
-    .attr("transform","translate(60,69)");
+    .attr("transform","translate(60,70)");
 
     var yAxis = d3.svg.axis()
         .scale(sizeScaleY)
@@ -120,11 +186,11 @@ function drawRadius(lat,lng){
     .attr("opacity",.1)
 }
 //var chains = ["Starbucks","Dunkin' Donuts","Peet's Coffee & Tea","Au Bon Pain","Dunkin Donuts","Tatte Fine Cookies and Cakes","Tealuxe","Starbucks Coffee"]
-function drawCoffee(data,svg){
+function drawCoffee(data,busDistances,svg){
     var arrayData = jsonToArray(data)
     
     coffeeStats(arrayData)
-    
+    drawBus(busDistances)
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
@@ -158,6 +224,11 @@ function drawCoffee(data,svg){
             d3.select("#chartName").html(d.name)
             d3.selectAll("#map svg circle").transition().duration(300).style("fill","#fff").style("opacity",.2)
             d3.select(this).transition().duration(300).style("fill","#000").style("opacity",1)
+            d3.selectAll("#busC svg rect").transition().duration(300).style("fill","#000").style("opacity",.1)
+            d3.selectAll("#busC svg ."+cleanString(d.name)).transition().duration(300).style("fill","red").style("opacity",.5)
+            
+            drawStopsMap(d.name,busDistances)
+            
             for(var i in d["independent"]){
                 d3.selectAll("#map ."+cleanString(i)).transition().duration(300).style("fill","#aaa").style("opacity",1)
             }
@@ -181,7 +252,8 @@ function drawCoffee(data,svg){
                 d3.selectAll("#map ."+cleanString(i)).style("fill","#aaa")
             }
            // drawRadius(d.lat,d.lng)
-            drawBusiness(d)})
+            drawBusiness(d)
+        })
         .style("opacity",1)
        
 }
@@ -204,41 +276,4 @@ function drawBuildings(geoData,svg){
 		.style("fill","none")
 		.style("stroke","#000")
 	    .style("opacity",.5)
-}
-function drawDots(data,svg,className){
-    console.log(data)
-    var w = window
-    x = w.innerWidth || e.clientWidth || g.clientWidth;
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-	var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/2,y/2])
-    //d3 geo path uses projections, it is similar to regular paths in line graphs
-    svg.selectAll("circle")
-        .data(data)
-        .enter()
-        .append("circle")
-        .attr("class",className)
-        .attr("r",1)
-        .attr("cx",function(d){
-            var lat = parseFloat(d.lat)
-            var lng = parseFloat(d.lng)
-            //to get projected dot position, use this basic formula
-            var projectedLng = projection([lng,lat])[0]
-            return projectedLng
-        })
-        .attr("cy",function(d){
-            var lat = parseFloat(d.lat)
-            var lng = parseFloat(d.lng)
-            var projectedLat = projection([lng,lat])[1]
-            return projectedLat
-        })
-        .attr("fill",function(d){
-            //color code the dots by gender
-            return "red"
-        })
-	    .style("opacity",1)
-        //on mouseover prints dot data
-        .on("mouseover",function(d){
-            console.log(d)
-        })
-        
 }
