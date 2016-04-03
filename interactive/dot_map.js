@@ -9,12 +9,15 @@ $(function() {
         .defer(d3.json,businesses)
         .defer(d3.json,businessTypes)
         .defer(d3.json,trees)
+        .defer(d3.json,buildingsDistances)
         .await(dataDidLoad);
 })
-
+var util = {
+    scale:600000
+}
 $("#topDifferences .hideTop").hide()
 
-function dataDidLoad(error,outline,buildings,coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees) {
+function dataDidLoad(error,outline,buildings,coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances) {
 //make 1 svg for everything
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
@@ -28,7 +31,7 @@ function dataDidLoad(error,outline,buildings,coffeeDistances,busDistances,bikeSh
     //    var tractNumber = children.tracts[tract]
     //    drawDots(children.points[tractNumber],mapSvg,tractNumber)
     //}
-    drawCoffee(coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,mapSvg)
+    drawCoffee(coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances,mapSvg)
 
 }
 var zoom = d3.behavior.zoom()
@@ -49,7 +52,49 @@ function jsonToArray(data){
     }
     return newArray
 }
-
+function drawBuildingsByCoffee(buildings){
+    var buildingsArray = jsonToArray(buildings["buildings"])
+    for(var b in buildingsArray){
+        var coordinates = buildingsArray[b].coordinates
+        var distance = buildingsArray[b].distance
+        drawEachBuilding(coordinates,distance)
+    }
+}
+var buildingsColor = ["#AF9B78",
+"#65634E",
+"#BBA299",
+"#7C6B66",
+"#959F8E"]
+function drawEachBuilding(coordinates,distance){
+    console.log(distance)
+    var dScale = d3.scale.linear().domain([0,.20]).range([.7,0])
+    var w = window
+    x = w.innerWidth || e.clientWidth || g.clientWidth;
+    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var mapSvg = d3.select("#map svg")
+    var line = d3.svg.line()
+//          .interpolate("cardinal")
+          .x(function(d) {
+            var lat = parseFloat(d[1])
+            var lng = parseFloat(d[0])
+            var projectedLng = projection([lng,lat])[0]
+              return projectedLng
+          })
+          .y(function(d) {
+            var lat = parseFloat(d[1])
+            var lng = parseFloat(d[0])
+            var projectedLat = projection([lng,lat])[1]
+              return projectedLat
+          })
+    mapSvg.append("path")
+          .attr("d", line(coordinates))
+          .attr("fill",buildingsColor[parseInt(Math.random())])
+          .attr("stroke", "none")
+          .attr("stroke-width",.1)
+          .attr("opacity",dScale(distance))
+          .attr("class","buildings")
+}
 function cleanString(string){
     var newString = string.replace(/[^A-Z]/ig, "");
     return newString
@@ -137,7 +182,7 @@ function drawPath(route,traffic,coffee,color){
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     
     var trafficScale = d3.scale.linear().domain([500,4000]).range([.5,5])
-	var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
     var mapSvg = d3.select("#map svg")
     var line = d3.svg.line()
 //          .interpolate("cardinal")
@@ -228,7 +273,7 @@ function drawRadius(lat,lng){
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     
-	var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
     
     d3.select("#map svg").append("circle")
     .attr("cx",function(){
@@ -244,16 +289,16 @@ function drawRadius(lat,lng){
     .attr("opacity",.1)
 }
 //var chains = ["Starbucks","Dunkin' Donuts","Peet's Coffee & Tea","Au Bon Pain","Dunkin Donuts","Tatte Fine Cookies and Cakes","Tealuxe","Starbucks Coffee"]
-var businessColors =["#597FC4",
-"#929094",
-"#5778E9",
-"#86A6C4",
-"#488EEE",
-"#8986AA",
-"#8989E3",
-"#5486AD",
-"#8D9EDC",
-"#55A4E4"]
+var businessColors =["#55622C",
+"#CB54C8",
+"#6DAF43",
+"#7B69C7",
+"#C28D39",
+"#8097C7",
+"#BE4C3B",
+"#4F9F8C",
+"#C55682",
+"#644C6D"]
 var treeColors = ["#91E3A5","#76E837","#6B865D","#5ACC47","#547C35","#5EDF81","#ADDC57","#53A76E","#599A30","#B9D989"] 
 var bikeColors =["#8C3E57",
 "#B02994",
@@ -291,7 +336,7 @@ function drawDiversityMap(businesses,types,allbusinessTypes){
     var totalBusinesses =businessArray.length
     d3.select("#diversity").html("<strong>Diversity</strong> There are "+totalBusinesses+" businesses within .25 miles. <br/>The top businesses types are:<br/>"+topFive)
     
-    var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
     var mapSvg = d3.select("#map svg")
     mapSvg.selectAll(".diversity")
     .data(businessArray)
@@ -311,7 +356,7 @@ function drawDiversityMap(businesses,types,allbusinessTypes){
         return projectedLat
     })
     .attr("r",1)
-    .attr("opacity",.5)
+    .attr("opacity",.7)
     .attr("fill",function(){
         return businessColors[parseInt(Math.random()*9)]
     })
@@ -321,12 +366,20 @@ function drawTreesMap(trees){
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     var treesArray = jsonToArray(trees["trees"])
-    var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var treeDiameterScale = d3.scale.linear().domain([0,40]).range([.5,3])
+    var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
     var mapSvg = d3.select("#map svg")
     mapSvg.selectAll(".diversity")
     .data(treesArray)
     .enter()
     .append("circle")
+    //.append("svg:image")
+    //.attr("xlink:href",function(){
+    //    return "treetops/"+parseInt(Math.random()*4+1)+".jpg"
+    //})
+   // .attr("width",10)
+   // .attr("height",10)
+    .attr("class","trees")
     .attr("cx",function(d){
         var lat = parseFloat(d.lat)
         var lng = parseFloat(d.lng)
@@ -340,13 +393,15 @@ function drawTreesMap(trees){
         var projectedLat = projection([lng,lat])[1]
         return projectedLat
     })
-    .attr("r",1)
-    .attr("opacity",.5)
-    .attr("fill",function(){
-        return "green"
+      .attr("r",function(d){
+          return treeDiameterScale(d.diameter)
+      })
+    .attr("opacity",.3)
+   .attr("fill",function(){
+        return treeColors[parseInt(Math.random()*9)]
     })
 }
-function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,businessTypes,trees,svg){
+function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances,svg){
     var arrayData = jsonToArray(data)
     
     coffeeStats(arrayData)
@@ -355,35 +410,40 @@ function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     
-	var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
     svg.selectAll(".dots")
         .data(arrayData)
         .enter()
-        .append("circle")
+        .append("svg:image")
+        .attr("xlink:href","x.png")
+        .attr("width",10)
+        .attr("height",10)
+        //.append("circle")
         .attr("class",function(d){
-            return cleanString(d.name)})
-        .attr("r",5)
-        .attr("cx",function(d){
+            return "coffee "+ cleanString(d.name)})
+        //.attr("r",5)
+        .attr("x",function(d){
             var lat = parseFloat(d.lat)
             var lng = parseFloat(d.lng)
             //to get projected dot position, use this basic formula
             var projectedLng = projection([lng,lat])[0]
             return projectedLng
         })
-        .attr("cy",function(d){
+        .attr("y",function(d){
             var lat = parseFloat(d.lat)
             var lng = parseFloat(d.lng)
             var projectedLat = projection([lng,lat])[1]
             return projectedLat
         })
-        .attr("fill",function(d){
-           return "#fff"
-        })
-        .attr("stroke","#000")
+       // .attr("fill",function(d){
+       //    return "#fff"
+       // })
+       // .attr("stroke","#000")
         .on("click",function(d){
             d3.select("#chartName").html(d.name)
-            d3.selectAll("#map svg circle").transition().duration(300).style("fill","#fff").style("opacity",.2)
-            d3.select(this).transition().duration(300).style("fill","#000").style("opacity",1)
+            d3.selectAll("#map svg .coffee").transition().duration(300).style("opacity",.2)
+            d3.selectAll("#map svg circle").transition().duration(300).style("opacity",0).remove()
+            d3.select(this).transition().duration(300).style("opacity",1)
             d3.selectAll("#busC svg rect").transition().duration(300).style("fill","#000").style("opacity",.1)
             d3.selectAll("#busC svg ."+cleanString(d.name)).transition().duration(300).style("fill","red").style("opacity",.5)
             
@@ -393,7 +453,7 @@ function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,
             drawStopsMap(d.name,busDistances)
             
             for(var i in d["independent"]){
-                d3.selectAll("#map ."+cleanString(i)).transition().duration(300).style("fill","#aaa").style("opacity",1)
+                d3.selectAll("#map ."+cleanString(i)).transition().duration(300).style("opacity",.6)
             }
             for(var i in d["chain"]){
                 d3.select("#map svg").append("circle")
@@ -415,10 +475,11 @@ function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,
                 d3.selectAll("#map ."+cleanString(i)).style("fill","#aaa")
             }
            // drawRadius(d.lat,d.lng)
-            drawBusiness(d)
-            drawBikeShare(bikeDistances[d.name].routes,bikeShareTraffic,d.name)
-            drawDiversityMap(businesses[d.name]["businesses"],businesses[d.name]["types"],businessTypes)
             drawTreesMap(trees[d.name])
+            drawBuildingsByCoffee(buildingsDistances[d.name])
+            drawBikeShare(bikeDistances[d.name].routes,bikeShareTraffic,d.name)
+            drawBusiness(d)
+            drawDiversityMap(businesses[d.name]["businesses"],businesses[d.name]["types"],businessTypes)
             
             d3.select("#description").html(d.name+" in Cambridge is .... <br/>Has te indoctum sadipscing, molestiae necvertitur. Ius tibique mediocritatem ei, soleat suavitate elaboraret sit et.")
         })
@@ -430,7 +491,7 @@ function drawBuildings(geoData,svg){
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-	var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
     //d3 geo path uses projections, it is similar to regular paths in line graphs
 	var path = d3.geo.path().projection(projection);
     
@@ -450,8 +511,11 @@ function drawBuildings(geoData,svg){
 }
 function zoomed() {
 	//console.log("calling zoomed" + d3.event.scale + ", translate: "+ d3.event.translate )
+    //util.scale = d3.event.scale
 	map=d3.selectAll("#map path").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	map=d3.selectAll("#map circle").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	map=d3.selectAll("#map .trees").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	map=d3.selectAll("#map .coffee").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
   	//map.select("circle").style("stroke-width", 1.5 / d3.event.scale + "px").style("font-size",1.5 / d3.event.scale + "px");
 	//var newScaleDistance = Math.round((5/d3.event.scale)* 100) / 100
 	//d3.select("#scale .scale-text").text(newScaleDistance+"km")
