@@ -13,7 +13,7 @@ $(function() {
         .await(dataDidLoad);
 })
 var util = {
-    scale:600000
+    scale:4000000
 }
 $("#topDifferences .hideTop").hide()
 
@@ -92,8 +92,11 @@ function drawEachBuilding(coordinates,distance){
           .attr("fill",buildingsColor[parseInt(Math.random())])
           .attr("stroke", "none")
           .attr("stroke-width",.1)
-          .attr("opacity",dScale(distance))
+          .attr("opacity",0)
           .attr("class","buildings")
+          .transition()
+          .duration(1000)
+          .attr("opacity",dScale(distance))
 }
 function cleanString(string){
     var newString = string.replace(/[^A-Z]/ig, "");
@@ -126,7 +129,7 @@ function drawStopsMap(coffee,busData){
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     
-	var projection = d3.geo.mercator().scale(600000).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
     var stopsArray = jsonToArray(busData[coffee]["stops"])
     var svg = d3.select("#map svg")
     svg.selectAll(".buses")
@@ -355,18 +358,22 @@ function drawDiversityMap(businesses,types,allbusinessTypes){
         var projectedLat = projection([lng,lat])[1]
         return projectedLat
     })
-    .attr("r",1)
+    .attr("r",0)
     .attr("opacity",.7)
     .attr("fill",function(){
         return businessColors[parseInt(Math.random()*9)]
     })
+    .transition()
+    .duration(1000)
+    .delay(function(d,i){return i*2})
+     .attr("r",5)
 }
 function drawTreesMap(trees){
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     var treesArray = jsonToArray(trees["trees"])
-    var treeDiameterScale = d3.scale.linear().domain([0,40]).range([.5,3])
+    var treeDiameterScale = d3.scale.linear().domain([0,40]).range([1,15])
     var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
     var mapSvg = d3.select("#map svg")
     mapSvg.selectAll(".diversity")
@@ -394,12 +401,19 @@ function drawTreesMap(trees){
         return projectedLat
     })
       .attr("r",function(d){
+          return 1
+      })
+       .attr("opacity",.5)
+      .attr("fill",function(){
+           return treeColors[parseInt(Math.random()*9)]
+       })
+      .transition()
+      .duration(1000)
+      .delay(function(d,i){return i*2})
+      .attr("r",function(d){
           return treeDiameterScale(d.diameter)
       })
-    .attr("opacity",.3)
-   .attr("fill",function(){
-        return treeColors[parseInt(Math.random()*9)]
-    })
+    
 }
 function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances,svg){
     var arrayData = jsonToArray(data)
@@ -446,6 +460,7 @@ function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,
             d3.select(this).transition().duration(300).style("opacity",1)
             d3.selectAll("#busC svg rect").transition().duration(300).style("fill","#000").style("opacity",.1)
             d3.selectAll("#busC svg ."+cleanString(d.name)).transition().duration(300).style("fill","red").style("opacity",.5)
+            d3.selectAll("#map svg .buildings").transition().duration(300).style("opacity",0).remove()
             
             d3.selectAll("#map svg .routes").transition().duration(300).style("opacity",0).remove()
             d3.selectAll("#map svg .routes ."+cleanString(d.name)).transition().duration(300).style("opacity",1)
@@ -500,7 +515,7 @@ function drawBuildings(geoData,svg){
 		.data(geoData.features)
         .enter()
         .append("path")
-		.attr("class","buildings")
+		.attr("class","streets")
 		.attr("d",path)
 		.style("fill","#fff")
 		.style("stroke","#000")
