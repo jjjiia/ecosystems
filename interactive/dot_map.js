@@ -12,16 +12,19 @@ $(function() {
         .defer(d3.json,buildingsDistances)
         .await(dataDidLoad);
 })
+var w = window
+x = w.innerWidth || e.clientWidth || g.clientWidth;
+y = w.innerHeight|| e.clientHeight|| g.clientHeight;
 var util = {
-    scale:4000000
+    scale:4000000,
+    center:[-71.116580,42.374059],
+    translate:[x/3,y/2]
 }
 $("#topDifferences .hideTop").hide()
 
 function dataDidLoad(error,outline,buildings,coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances) {
 //make 1 svg for everything
-    var w = window
-    x = w.innerWidth || e.clientWidth || g.clientWidth;
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+ 
     var mapSvg = d3.select("#map").append("svg").attr("width",x*.9).attr("height",y*.9)
     drawBuildings(outline,mapSvg)
     drawBuildings(buildings,mapSvg)
@@ -71,7 +74,7 @@ function drawEachBuilding(coordinates,distance){
     var w = window
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center(util.center).translate(util.translate)
     var mapSvg = d3.select("#map svg")
     var line = d3.svg.line()
 //          .interpolate("cardinal")
@@ -129,7 +132,7 @@ function drawStopsMap(coffee,busData){
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     
-	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center(util.center).translate(util.translate)
     var stopsArray = jsonToArray(busData[coffee]["stops"])
     var svg = d3.select("#map svg")
     svg.selectAll(".buses")
@@ -185,7 +188,7 @@ function drawPath(route,traffic,coffee,color){
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     
     var trafficScale = d3.scale.linear().domain([500,4000]).range([.5,5])
-	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center(util.center).translate(util.translate)
     var mapSvg = d3.select("#map svg")
     var line = d3.svg.line()
 //          .interpolate("cardinal")
@@ -276,7 +279,7 @@ function drawRadius(lat,lng){
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     
-	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center(util.center).translate(util.translate)
     
     d3.select("#map svg").append("circle")
     .attr("cx",function(){
@@ -339,7 +342,7 @@ function drawDiversityMap(businesses,types,allbusinessTypes){
     var totalBusinesses =businessArray.length
     d3.select("#diversity").html("<strong>Diversity</strong> There are "+totalBusinesses+" businesses within .25 miles. <br/>The top businesses types are:<br/>"+topFive)
     
-    var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var projection = d3.geo.mercator().scale(util.scale).center(util.center).translate(util.translate)
     var mapSvg = d3.select("#map svg")
     mapSvg.selectAll(".diversity")
     .data(businessArray)
@@ -374,7 +377,7 @@ function drawTreesMap(trees){
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     var treesArray = jsonToArray(trees["trees"])
     var treeDiameterScale = d3.scale.linear().domain([0,40]).range([1,15])
-    var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
+    var projection = d3.geo.mercator().scale(util.scale).center(util.center).translate(util.translate)
     var mapSvg = d3.select("#map svg")
     mapSvg.selectAll(".diversity")
     .data(treesArray)
@@ -424,7 +427,7 @@ function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
     
-	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
+	var projection = d3.geo.mercator().scale(util.scale).center(util.center).translate(util.translate)
     svg.selectAll(".dots")
         .data(arrayData)
         .enter()
@@ -502,14 +505,8 @@ function drawCoffee(data,busDistances,bikeDistances,bikeShareTraffic,businesses,
        
 }
 function drawBuildings(geoData,svg){
-    //need to generalize projection into global var later
-    var w = window
-    x = w.innerWidth || e.clientWidth || g.clientWidth;
-    y = w.innerHeight|| e.clientHeight|| g.clientHeight;
-	var projection = d3.geo.mercator().scale(util.scale).center([-71.116580,42.374059]).translate([x/3,y/2])
-    //d3 geo path uses projections, it is similar to regular paths in line graphs
+	var projection = d3.geo.mercator().scale(util.scale).center(util.center).translate(util.translate)
 	var path = d3.geo.path().projection(projection);
-    
     //push data, add path
 	svg.selectAll(".buildings")
 		.data(geoData.features)
@@ -526,8 +523,9 @@ function drawBuildings(geoData,svg){
 }
 function zoomed() {
 	//console.log("calling zoomed" + d3.event.scale + ", translate: "+ d3.event.translate )
-    //util.scale = d3.event.scale
-	map=d3.selectAll("#map path").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+    util.scale = d3.event.scale
+	util.translate = d3.event.translate
+    map=d3.selectAll("#map path").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	map=d3.selectAll("#map circle").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	map=d3.selectAll("#map .trees").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	map=d3.selectAll("#map .coffee").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");

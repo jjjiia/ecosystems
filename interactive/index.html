@@ -23,32 +23,29 @@
 <body>
   <div id = "header">
     <div id = "title">Ecosystems </div>
-    <div id = "subtitle">Assessing Independent Coffee Shops for placement of Parklets</div>
+    <div id = "subtitle">Assessing Locations for Placement of New Schools</div>
   </div>
 <div id = "map"></div>
 <div id = "description"></div>
 
 <div id = "charts">
-  <div id = "chartName">name:</div>
+  <div id = "chartName">Location Information:All</div>
   <div id = "business">
-    <div id = "adversity">
-      <strong>Adversity</strong> shows similar competing entities within .5 miles: <br/>chain shops:<br/>independent shops:
-    </div>
+    <div id = "adversity"><strong>Competing Schools</strong></div>
+    <div id = "adversity"><strong>Complementary Schools</strong></div>
     <div id = "adversityC"></div>
     <div id = "diversity"><strong>Diversity</strong> </div>
     <div id = "diversityC"></div>
   </div>
-  <div id = "population"><strong>Demography</strong></div>
-  <div id = "quality"><strong>Qualities</strong>
-    <div id = "buildingHeight">buildingHeight</div>
-    <div id = "greenery">Greenery</div>
-    <div id = "sidewalkWidth">Sidewalk</div>
-  </div>
-  <div id = "connectivity"><strong>Connectivity</strong>
-    <div id = "bus">Bus</div>
+    <div id = "buildingHeight"><strong>Building Height</strong></div>
+    <div id = "greenery"><strong>Greenery</strong></div>
+    <div id = "parks"><strong>Parks</strong> </div>
+    <div id = "connectivity"><strong>Connectivity</strong>
+    <div id = "bus"><strong>Bus</strong></div>
     <div id = "busC"></div>
-    <div id = "bike"><strong>Bike Share</strong><br/></div>
-    <div id = "train"><strong>train</strong> </div>
+    <div id = "bike"><strong>Bike</strong><br/></div>
+    <div id = "train"><strong>Train</strong> </div>
+    
   </div>
 </div>
 
@@ -56,7 +53,7 @@
 
 <script type="text/javascript" charset="utf-8">
   var outline = "data/cambridge.geojson"
-  var buildings = "data/streets.geojson"
+  var streets = "data/streets.geojson"
   var coffeeDistances = "data/coffeeShopDistances_halfmile.json"
   var busDistances = "data/busStops_quartermile.json"
   var bikeShareDistances = "data/bikeshare_halfmile.json"
@@ -67,7 +64,7 @@
   var buildingsDistances = "data/buildings_quartermile.json"
 </script>
 
-<script src="dot_map.js"></script>
+<script src="ecosystem.js"></script>
 	
 </body>
 </html>
