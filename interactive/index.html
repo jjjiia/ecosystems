@@ -15,17 +15,20 @@
 	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 	<link href='http://fonts.googleapis.com/css?family=EB+Garamond' rel='stylesheet' type='text/css'>
 
-	<link rel="stylesheet" type="text/css" href="static/stylesheets/coffee.css"> </style>
+	<link rel="stylesheet" type="text/css" href="static/stylesheets/placement.css"> </style>
 	
      
 </head>
 
 <body>
-<div id = "map"></div><!--  <div id = "header">
-    <div id = "title">Ecosystems </div>
-    <div id = "subtitle">Assessing Locations for Placement of New Schools</div>
-  </div>
+<div id = "map"></div>
+<div id = "table"></div>
+<div id = "header">
+    <div id = "title">Patterns </div>
+    <div id = "subtitle">Assessing Locations for Placement of New Schools in Cambridge</div>
+</div>
 
+<!--  
 <div id = "description"></div>
 
 <div id = "charts">
@@ -58,13 +61,14 @@
 
   var buildingsDistances = "data/buildings_tenthmile.json"
   var potentialLocation = "data/locationsForSchools.csv"
+  var trees = "data/trees_quartermile.json"
+  var businesses ="data/businesses_quartermile.json"
+  var busDistances = "data/busStops_quartermile.json"  
+  var bikeShareDistances = "data/bikeshare_halfmile.json"
+  var openspaceDistances = "data/openspace_tenthmile.json"
 
-  var busDistances = "coffee_data/busStops_quartermile.json"
-  var bikeShareDistances = "coffee_data/bikeshare_halfmile.json"
   var bikeShareTraffic ="coffee_data/bikeShare_traffic.json"
-  var businesses ="coffee_data/businesses_quartermile.json"
   var businessTypes ="coffee_data/cambridge_businessTypes_count.json"
-  var trees = "coffee_data/trees_quartermile.json"
 </script>
 
 <script src="ecosystem_schools.js"></script>

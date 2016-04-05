@@ -1,8 +1,5 @@
 //TODO:
-//get bike paths data, calculate
 //get business categories, calculate and color
-//get building height data and draw 
-//get park data and draw 
 //get park data and draw 
 //explainer text for each
 //overview graph for each
@@ -20,13 +17,14 @@ $(function() {
         .defer(d3.json,trees)
         .defer(d3.json,buildingsDistances)
         .defer(d3.csv,potentialLocation)
+        .defer(d3.json,openspaceDistances)
         .await(dataDidLoad);
 })
 var w = window
 x = w.innerWidth || e.clientWidth || g.clientWidth;
 y = w.innerHeight|| e.clientHeight|| g.clientHeight;
 var util = {
-    scale:600000,
+    scale:2000000,
     center:[-71.116580,42.374059],
     translate:[x/2,y/2]
 }
@@ -40,24 +38,66 @@ var zoom = d3.behavior.zoom()
     .scaleExtent([-10, 10])
     .on("zoom", zoomed);
 
-function dataDidLoad(error,outline,streets,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances,potentialLocation) {
-    var mapSvg = d3.select("#map").append("svg").attr("width",x*.9).attr("height",y*.9)
+function dataDidLoad(error,outline,streets,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances,potentialLocation,openspaceDistances) {
+    var mapSvg = d3.select("#map").append("svg").attr("width",x).attr("height",y)
+    var table = d3.select("#table").append("svg").attr("width",500).attr("height",y)
+
+
     drawBuildings(outline,mapSvg)
     drawBuildings(streets,mapSvg)
-    
     var mapSvg = d3.select("#map svg").call(zoom)
 
     for(var l in potentialLocation){
         var locationName = potentialLocation[l].id
         var locationClass = "_"+locationName
-        //drawBike(bikeShareDistances[locationName].routes,locationClass)
-        drawBuildingsByCoffee(buildingsDistances[locationName].buildings,locationClass)
-       // drawBusByLocation(trees[locationName].trees,locationClass,treeColors,4,0,null)
-        //drawBusByLocation(businesses[locationName].businesses,locationClass,businessColors,4,0,2)
-        //drawBusByLocation(busDistances[locationName].stops,locationClass,["red"],5,0,3)
+        drawBike(bikeShareDistances[locationName].routes,locationClass)
+        drawBuildingsByCoffee(buildingsDistances[locationName].buildings,locationClass,null)
+        drawBuildingsByCoffee(openspaceDistances[locationName].buildings,locationClass,"green")
+        drawEntitiesByLocation(trees[locationName].trees,locationClass,treeColors,4,0,null)
+        drawRectByLocation(businesses[locationName].businesses,locationClass,businessColors,4,0,1)
+        drawEntitiesByLocation(busDistances[locationName].stops,locationClass,["red"],5,0,3)
     }
     drawLocations(potentialLocation)
+    drawTable(formatTable())
     
+    
+}
+function formatTable(){
+    var keys = ["tree","bus","bike","buildings","Total"]
+    var data = []
+    for(var place =0;place<12;place++){
+        placeData={}
+        for(var k in keys){
+            placeData["Name"]=String(place)
+            placeData[keys[k]]=parseInt(Math.random()*30)
+        }
+        data.push(placeData)
+    }
+    return data
+}
+function drawTable(data){
+    d3.select("#table svg")
+console.log(data)
+    
+    d3.selectAll("thead td").data(data).on("click", function(k) {
+      tr.sort(function(a, b) { return (b[k] / b.Total) - (a[k] / a.Total); });
+    });
+console.log(data)
+
+  var tr = d3.select("tbody").selectAll("tr")
+      .data(data)
+    .enter().append("tr");
+  tr.append("th")
+      .text(function(d) { return d.name; });
+
+  tr.selectAll("td")
+      .data(function(d) { return data.map(function(k) { return d[k] / d.Total; }); })
+    .enter().append("td").append("svg")
+      .attr("width", 71)
+      .attr("height", 12)
+    .append("rect")
+      .attr("height", 12)
+      .attr("width", function(d) { return d * 71; });
 }
 function drawLocations(locationData,locationClass){
     
@@ -87,8 +127,8 @@ function drawLocations(locationData,locationClass){
         })
         .on("click",function(d){
             d3.selectAll("#map circle").transition().style("opacity",0)
-            d3.selectAll("path").attr("opacity",.1)
-            console.log(d.id)
+            d3.selectAll("#map rect").transition().style("opacity",0)
+            d3.selectAll("path").attr("opacity",0)
             d3.selectAll("._"+d.id).transition().duration(500).delay(function(d,i){ return i}).attr("opacity",.7)
             
             d3.selectAll("#map .locations").transition().duration(500).attr("opacity",.3)
@@ -97,17 +137,16 @@ function drawLocations(locationData,locationClass){
         })
         .attr("cursor","pointer")
 }
-function drawBuildingsByCoffee(buildings,className){
-    console.log(className)
+function drawBuildingsByCoffee(buildings,className,color){
     var buildingsArray = jsonToArray(buildings)
     for(var b in buildingsArray){
         var coordinates = buildingsArray[b].coordinates
         var distance = buildingsArray[b].distance
         var height = buildingsArray[b].height
-        drawEachBuilding(coordinates,height,className)
+        drawEachBuilding(coordinates,height,className,color)
     }
 }
-function drawEachBuilding(coordinates,height,className){
+function drawEachBuilding(coordinates,height,className,color){
     var dScale = d3.scale.linear().domain([0,.20]).range([.7,0])
     var w = window
     var opacityScale = d3.scale.linear().domain([2,16]).range(["#FFF","#000"])
@@ -135,7 +174,12 @@ function drawEachBuilding(coordinates,height,className){
           .attr("d", line(coordinates))
           .attr("fill","none")
           .attr("stroke-width",.5)
-          .attr("fill", opacityScale(height/8))
+          .attr("fill", function(){
+              if(color == null){
+           return opacityScale(height/8)
+                      
+              }else{return color}
+          })
           .attr("class",className)
           .attr("opacity",0)
 }
@@ -171,12 +215,12 @@ function drawPath(data,className){
           .attr("d", line(data))
           .attr("fill","none")
           .attr("stroke",bikeColors[parseInt(Math.random()*8)])
-          .attr("stroke-width",2)
+          .attr("stroke-width",1)
           .attr("opacity",0)
           .attr("class",className)
 }
-function drawBusByLocation(busData,className,color,delay,opacity,radius){
-    var rScale = d3.scale.linear().domain([1,40]).range([1,5])
+function drawEntitiesByLocation(busData,className,color,delay,opacity,radius){
+    var rScale = d3.scale.linear().domain([1,40]).range([.4,5])
     var mapSvg = d3.select("#map svg")
     var dataArray = jsonToArray(busData)
     mapSvg.selectAll(".circle")
@@ -220,7 +264,48 @@ function drawBusByLocation(busData,className,color,delay,opacity,radius){
             return radius
         })
 }
-   
+function drawRectByLocation(busData,className,color,delay,opacity,radius){
+    var rScale = d3.scale.linear().domain([1,40]).range([.4,5])
+    var mapSvg = d3.select("#map svg")
+    var dataArray = jsonToArray(busData)
+    
+    mapSvg.selectAll(".rect")
+        .data(dataArray)
+        .enter()
+        .append("rect")
+        .attr("width",2)
+        .attr("height",0)
+        .attr("fill",function(d,i){
+            if(color.length == 1){
+                return color
+            }else{
+                return color[parseInt(Math.random()*(color.length-1))]
+            }
+            
+        })
+        .attr("opacity",opacity)
+        .attr("class",function(d){return className})
+        .attr("x",function(d){
+            var lat = parseFloat(d.lat)
+            var lng = parseFloat(d.lng)
+            //to get projected dot position, use this basic formula
+            var projectedLng = projection([lng,lat])[0]
+            return projectedLng
+        })
+        .attr("y",function(d){
+            var lat = parseFloat(d.lat)
+            var lng = parseFloat(d.lng)
+            var projectedLat = projection([lng,lat])[1]
+            return projectedLat
+        })
+        .transition()
+        .duration(2000)
+        .delay(function(d,i){
+            return delay*5
+        })
+        .attr("width",4)
+        .attr("height",4)
+} 
 function jsonToArray(data){
     var newArray = []
     for(var item in data){
@@ -345,6 +430,7 @@ function zoomed() {
 	util.translate = d3.event.translate
     map=d3.selectAll("#map path").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	map=d3.selectAll("#map circle").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+	map=d3.selectAll("#map rect").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	map=d3.selectAll("#map .trees").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 	map=d3.selectAll("#map .locations").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
   	//map.select("circle").style("stroke-width", 1.5 / d3.event.scale + "px").style("font-size",1.5 / d3.event.scale + "px");
