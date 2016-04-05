@@ -21,11 +21,11 @@
 </head>
 
 <body>
-  <div id = "header">
+<div id = "map"></div><!--  <div id = "header">
     <div id = "title">Ecosystems </div>
     <div id = "subtitle">Assessing Locations for Placement of New Schools</div>
   </div>
-<div id = "map"></div>
+
 <div id = "description"></div>
 
 <div id = "charts">
@@ -48,23 +48,26 @@
     
   </div>
 </div>
-
+-->
 
 
 <script type="text/javascript" charset="utf-8">
   var outline = "data/cambridge.geojson"
   var streets = "data/streets.geojson"
-  var coffeeDistances = "data/coffeeShopDistances_halfmile.json"
-  var busDistances = "data/busStops_quartermile.json"
-  var bikeShareDistances = "data/bikeshare_halfmile.json"
-  var bikeShareTraffic ="data/bikeShare_traffic.json"
-  var businesses ="data/businesses_quartermile.json"
-  var businessTypes ="data/cambridge_businessTypes_count.json"
-  var trees = "data/trees_quartermile.json"
+
+
   var buildingsDistances = "data/buildings_tenthmile.json"
+  var potentialLocation = "data/locationsForSchools.csv"
+
+  var busDistances = "coffee_data/busStops_quartermile.json"
+  var bikeShareDistances = "coffee_data/bikeshare_halfmile.json"
+  var bikeShareTraffic ="coffee_data/bikeShare_traffic.json"
+  var businesses ="coffee_data/businesses_quartermile.json"
+  var businessTypes ="coffee_data/cambridge_businessTypes_count.json"
+  var trees = "coffee_data/trees_quartermile.json"
 </script>
 
-<script src="ecosystem.js"></script>
+<script src="ecosystem_schools.js"></script>
 	
 </body>
 </html>

@@ -20,13 +20,14 @@ $(function() {
         .defer(d3.json,businessTypes)
         .defer(d3.json,trees)
         .defer(d3.json,buildingsDistances)
+        .defer(d3.csv,potentialLocation)
         .await(dataDidLoad);
 })
 var w = window
 x = w.innerWidth || e.clientWidth || g.clientWidth;
 y = w.innerHeight|| e.clientHeight|| g.clientHeight;
 var util = {
-    scale:3000000,
+    scale:1000000,
     center:[-71.116580,42.374059],
     translate:[x/3,y/2]
 }
@@ -40,12 +41,15 @@ var zoom = d3.behavior.zoom()
     .scaleExtent([-10, 10])
     .on("zoom", zoomed);
 
-function dataDidLoad(error,outline,streets,coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances) {
+function dataDidLoad(error,outline,streets,coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances,potentialLocation) {
     var mapSvg = d3.select("#map").append("svg").attr("width",x*.9).attr("height",y*.9)
     drawBuildings(outline,mapSvg)
     drawBuildings(streets,mapSvg)
     
     var mapSvg = d3.select("#map svg").call(zoom)
+    drawDots(potentialLocation,mapSvg)
+
+
     var dataArray = jsonToArray(coffeeDistances)    
     for(var l in dataArray){
         var locationName = dataArray[l].name
@@ -59,10 +63,36 @@ function dataDidLoad(error,outline,streets,coffeeDistances,busDistances,bikeShar
     }
     drawLocations(dataArray,"blue")
     
-    //drawBuses(busDistances)
-    //drawBike(bikeShareDistances)
-    //drawDiversity(businesses)
-    //drawCoffee(coffeeDistances,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances,mapSvg)
+}
+function drawDots(data,svg){
+    console.log(data)    
+    svg.selectAll(".dots")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("class","dots")
+        .attr("r",5)
+        .attr("cx",function(d){
+            var lat = parseFloat(d.lat)
+            var lng = parseFloat(d.lng)
+            //to get projected dot position, use this basic formula
+            var projectedLng = projection([lng,lat])[0]
+            console.log(projectedLng)
+            return projectedLng
+        })
+        .attr("cy",function(d){
+            var lat = parseFloat(d.lat)
+            var lng = parseFloat(d.lng)
+            var projectedLat = projection([lng,lat])[1]
+            return projectedLat
+        })
+        .attr("fill",function(d){
+            //color code the dots by gender
+          return "green"
+        })
+	    .style("opacity",.3)
+        .on("mouseover",function(d){console.log(d.description)})
+        
 }
 function drawLocations(locationData,color){
     
