@@ -11,13 +11,13 @@ $(function() {
         .defer(d3.json,streets)
 		.defer(d3.json,busDistances)
         .defer(d3.json,bikeShareDistances)
-		.defer(d3.json,bikeShareTraffic)
         .defer(d3.json,businesses)
-        .defer(d3.json,businessTypes)
         .defer(d3.json,trees)
         .defer(d3.json,buildingsDistances)
         .defer(d3.csv,potentialLocation)
         .defer(d3.json,openspaceDistances)
+        .defer(d3.json,complementary)
+        .defer(d3.json,competition)
         .await(dataDidLoad);
 })
 var w = window
@@ -37,10 +37,8 @@ var zoom = d3.behavior.zoom()
     .scale(1)
     .scaleExtent([-10, 10])
     .on("zoom", zoomed);
-
-function dataDidLoad(error,outline,streets,busDistances,bikeShareDistances,bikeShareTraffic,businesses,businessTypes,trees,buildingsDistances,potentialLocation,openspaceDistances) {
+function dataDidLoad(error,outline,streets,busDistances,bikeShareDistances,businesses,trees,buildingsDistances,potentialLocation,openspaceDistances,competition,complementary) {
     var mapSvg = d3.select("#map").append("svg").attr("width",x).attr("height",y)
-    var table = d3.select("#table").append("svg").attr("width",500).attr("height",y)
 
 
     drawBuildings(outline,mapSvg)
@@ -54,13 +52,15 @@ function dataDidLoad(error,outline,streets,busDistances,bikeShareDistances,bikeS
         drawBuildingsByCoffee(buildingsDistances[locationName].buildings,locationClass,null)
         drawBuildingsByCoffee(openspaceDistances[locationName].buildings,locationClass,"green")
         drawEntitiesByLocation(trees[locationName].trees,locationClass,treeColors,4,0,null)
-        drawRectByLocation(businesses[locationName].businesses,locationClass,businessColors,4,0,1)
-        drawEntitiesByLocation(busDistances[locationName].stops,locationClass,["red"],5,0,3)
+        drawEntitiesByLocation(businesses[locationName].businesses,locationClass,"business",4,0,3)
+        drawEntitiesByLocation(busDistances[locationName].stops,locationClass,["#000"],5,0,4)
+        drawRectByLocation(competition[locationName].buildings,locationClass,["black"],5,0,8,"triangle-down")
+        drawRectByLocation(complementary[locationName].buildings,locationClass,["black"],5,0,8,"triangle-up")
     }
     drawLocations(potentialLocation)
-    drawTable(formatTable())
-    
-    
+    drawBusinessColorKey()
+   // var tableData = formatTable()
+   // drawTable(tableData)
 }
 function formatTable(){
     var keys = ["tree","bus","bike","buildings","Total"]
@@ -68,36 +68,146 @@ function formatTable(){
     for(var place =0;place<12;place++){
         placeData={}
         for(var k in keys){
-            placeData["Name"]=String(place)
-            placeData[keys[k]]=parseInt(Math.random()*30)
+            placeData["id"]=String(place)
+            placeData[keys[k]]=parseInt(Math.random()*10)
         }
         data.push(placeData)
     }
     return data
 }
 function drawTable(data){
-    d3.select("#table svg")
-console.log(data)
+    console.log(data)
+    console.log(tableSort(data,"tree"))
+    var w = 500
+    var h = 700
+    var margin = 100
+    var columnWidth = (h-margin)/data.length
+    var tableSvg = d3.select("#chart").append("svg").attr("width",w).attr("height",h)
     
-    d3.selectAll("thead td").data(data).on("click", function(k) {
-      tr.sort(function(a, b) { return (b[k] / b.Total) - (a[k] / a.Total); });
-    });
-console.log(data)
+    var tableSvg = d3.select("#chart svg").append("g")
+    var rScale = d3.scale.linear().domain([0,10]).range([2,columnWidth-5])
 
-  var tr = d3.select("tbody").selectAll("tr")
-      .data(data)
-    .enter().append("tr");
-  tr.append("th")
-      .text(function(d) { return d.name; });
+    var categories =   Object.keys(data[0])
+        tableSvg.selectAll(".table")
+        .data(categories)
+        .enter()
+        .append("text")
+    .attr("class","categoryLabel")
+        .text(function(d,i){return d})
+        .attr("x",function(d,i){return i*columnWidth})
+        .attr("y",-10)    
+        .attr("transform","translate("+(margin)+","+margin+")")
+        .attr("text-anchor","end")
+        .on("click",function(d){updateTable(data,d,columnWidth)})
 
-  tr.selectAll("td")
-      .data(function(d) { return data.map(function(k) { return d[k] / d.Total; }); })
-    .enter().append("td").append("svg")
-      .attr("width", 71)
-      .attr("height", 12)
-    .append("rect")
-      .attr("height", 12)
-      .attr("width", function(d) { return d * 71; });
+    for( var l in data){
+        var arrayFormat = []
+        for(var j in data[l]){
+            arrayFormat.push(data[l][j])
+        }
+        
+        tableSvg.selectAll(".table")
+            .data(arrayFormat)
+            .enter()
+            .append("circle")
+            .attr("class",function(d){console.log(d);return d})
+            .attr("cx",function(d,i){return i*columnWidth})
+            .attr("cy",l*columnWidth)
+            .attr("r",function(d,i){return d})
+            .attr("transform","translate("+margin+","+margin+")")
+        
+        tableSvg.append("text").text(l).attr("x",0).attr("y",l*columnWidth).attr("class","id")     
+            .attr("transform","translate("+margin+","+margin+")")
+
+    }
+}
+function updateTable(data,column,columnWidth){
+    var data = tableSort(data,column)
+     for( var l in data){
+         console.log(l)
+        d3.selectAll("#chart circle")
+            .transition()
+           // .attr("cx",function(d,i){return i*columnWidth})
+            .attr("cy",l*columnWidth)
+        d3.selectAll("#chart.id")
+            .transition()
+           // .attr("cx",function(d,i){return i*columnWidth})
+            .attr("cy",l*columnWidth)
+     }
+}
+function tableSort(data,column){
+    data.sort(function(a,b){
+        return parseFloat(b[column]) - parseFloat(a[column])
+    })
+    for (var i in data){
+        console.log(data[i])
+    }
+    return data
+}
+function drawBusinessColorKey(){
+    var locationL = d3.select("#locationL").append("svg").attr("width",200).attr("height",40)
+    locationL.append("text").text("Potential Locations").attr("x",30).attr("y",30)
+    locationL.append("svg:image")
+        .attr("xlink:href","x.png").attr("x",10).attr("y",18).attr("width",15).attr("height",15)
+    
+    var legend = d3.select("#otherL").append("svg").attr("width",200).attr("height",400)
+    console.log(businessTypeColorsArray)
+    console.log(colorsCategories)
+    var catArray = []
+    for(var cat in colorsCategories){
+        catArray.push([cat,colorsCategories[cat]])
+    }
+    var grayArray = new Array(12)
+    legend.append("text").text("Building Footprints:").attr("x",12).attr("y",260)
+    var grayScale = d3.scale.linear().domain([1,12]).range(["#ddd","#000"])
+    legend.selectAll("rect").data(grayArray).enter()
+        .append("rect")
+        .attr("x",function(d,i){return i*12+12})
+        .attr("y",270)
+        .attr("width",10)
+        .attr("height",20)
+        .attr("fill",function(d,i){return grayScale(i)})
+    legend.append("text").text("<2 Stories").attr("x",18).attr("y",292).attr("class","categoryLabel")
+    legend.append("text").text(">18 Stories").attr("x",150).attr("y",292).attr("class","categoryLabel")
+    
+    
+    legend.append("circle").attr("r",5).attr("cx",20).attr("cy",360).attr("fill","#000")
+    legend.append("rect").attr("width",10).attr("height",2).attr("x",15).attr("y",380).attr("fill","#000")
+    
+    legend.append("text").text("Bus Stops").attr("x",30).attr("y",364)
+    legend.append("text").text("Bike Lanes").attr("x",30).attr("y",384)
+    
+    legend.append("path")      
+        .attr("d",d3.svg.symbol().type("triangle-down"))
+        .attr("transform","translate(20,200)")
+        .attr("fill","#000")
+        .attr("class","schoolLegend")
+    legend.append("path")      
+        .attr("d",d3.svg.symbol().type("triangle-up"))
+        .attr("transform","translate(20,220)")
+        .attr("fill","#000")
+        .attr("class","schoolLegend")
+    legend.append("text").text("competing schools").attr("x",30).attr("y",204)
+    legend.append("text").text("complementary schools").attr("x",30).attr("y",224)
+    
+    legend.selectAll(".legend")
+    .data(catArray).enter().append("circle")
+    .attr("cx",20)
+    .attr("cy",function(d,i){console.log(i);return i*20+20})
+    .attr("r",5)
+    
+    .attr("fill",function(d){
+        var colorIndex = d[1]; 
+        return businessTypeColorsArray[colorIndex]})
+    legend.selectAll(".legend").data(catArray).enter().append("text")
+    .attr("x",30)
+    .attr("y",function(d,i){return i*20+24})
+    .attr("fill",function(d){
+            var colorIndex = d[1]; 
+            return businessTypeColorsArray[colorIndex]
+    })
+    .text(function(d){return d[0]})
+    
 }
 function drawLocations(locationData,locationClass){
     
@@ -128,7 +238,7 @@ function drawLocations(locationData,locationClass){
         .on("click",function(d){
             d3.selectAll("#map circle").transition().style("opacity",0)
             d3.selectAll("#map rect").transition().style("opacity",0)
-            d3.selectAll("path").attr("opacity",0)
+            d3.selectAll("#map path").attr("opacity",0)
             d3.selectAll("._"+d.id).transition().duration(500).delay(function(d,i){ return i}).attr("opacity",.7)
             
             d3.selectAll("#map .locations").transition().duration(500).attr("opacity",.3)
@@ -214,7 +324,7 @@ function drawPath(data,className){
     mapSvg.append("path")
           .attr("d", line(data))
           .attr("fill","none")
-          .attr("stroke",bikeColors[parseInt(Math.random()*8)])
+          .attr("stroke","#000")
           .attr("stroke-width",1)
           .attr("opacity",0)
           .attr("class",className)
@@ -229,7 +339,16 @@ function drawEntitiesByLocation(busData,className,color,delay,opacity,radius){
         .append("circle")
         .attr("r",0)
         .attr("fill",function(d,i){
-            if(color.length == 1){
+            if(color == "business"){
+                if(businessTypeColors[d["type"]]==undefined){
+                    return "none"
+                }else{
+                    var category = businessTypeColors[d["type"]]
+                    var colorIndex = colorsCategories[category]
+                    return businessTypeColorsArray[colorIndex]   
+                }
+            }
+            else if(color.length == 1){
                 return color
             }else{
                 return color[parseInt(Math.random()*(color.length-1))]
@@ -264,47 +383,41 @@ function drawEntitiesByLocation(busData,className,color,delay,opacity,radius){
             return radius
         })
 }
-function drawRectByLocation(busData,className,color,delay,opacity,radius){
-    var rScale = d3.scale.linear().domain([1,40]).range([.4,5])
+function drawRectByLocation(busData,className,color,delay,opacity,radius,symbolType){
+    var dScale = d3.scale.linear().domain([0,1]).range([color,"#fff"])
     var mapSvg = d3.select("#map svg")
     var dataArray = jsonToArray(busData)
-    
     mapSvg.selectAll(".rect")
         .data(dataArray)
         .enter()
-        .append("rect")
-        .attr("width",2)
-        .attr("height",0)
+        .append("path")
+        .attr("d",d3.svg.symbol().type(symbolType))
+        .attr("width",20)
         .attr("fill",function(d,i){
-            if(color.length == 1){
-                return color
-            }else{
-                return color[parseInt(Math.random()*(color.length-1))]
-            }
-            
+            return dScale(d.distance)
         })
-        .attr("opacity",opacity)
+        .attr("opacity",function(d){return 0})
         .attr("class",function(d){return className})
-        .attr("x",function(d){
+        .attr("transform",function(d){
             var lat = parseFloat(d.lat)
             var lng = parseFloat(d.lng)
-            //to get projected dot position, use this basic formula
             var projectedLng = projection([lng,lat])[0]
-            return projectedLng
-        })
-        .attr("y",function(d){
-            var lat = parseFloat(d.lat)
-            var lng = parseFloat(d.lng)
             var projectedLat = projection([lng,lat])[1]
-            return projectedLat
+            return "translate(" + projectedLng + "," + projectedLat + ")"
         })
-        .transition()
-        .duration(2000)
-        .delay(function(d,i){
-            return delay*5
-        })
-        .attr("width",4)
-        .attr("height",4)
+       // .attr("x",function(d){
+       //     var lat = parseFloat(d.lat)
+       //     var lng = parseFloat(d.lng)
+       //     //to get projected dot position, use this basic formula
+       //     var projectedLng = projection([lng,lat])[0]
+       //     return projectedLng
+       // })
+       // .attr("y",function(d){
+       //     var lat = parseFloat(d.lat)
+       //     var lng = parseFloat(d.lng)
+       //     var projectedLat = projection([lng,lat])[1]
+       //     return projectedLat
+       // })
 } 
 function jsonToArray(data){
     var newArray = []

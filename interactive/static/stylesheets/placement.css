@@ -38,7 +38,23 @@ html, body{
     background-color:rgba(255,255,255,.5);  
     font-size:20px;
 }
-#table{
+#locationL{
+    border-bottom:1px solid black;
+}
+.categoryLabel{
+    writing-mode: vertical-rl;
+    font-size:12px;
+}
+#legend{
+    position:fixed;
+    bottom:0px;
+    left:0px;
+    border:1px solid black;
+    margin:20px;
+    background-color:rgba(255,255,255,.8);
+    
+}
+#chart{
     position:fixed;
     top:0px;
     right:0px;

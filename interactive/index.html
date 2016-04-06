@@ -22,11 +22,14 @@
 
 <body>
 <div id = "map"></div>
-<div id = "table"></div>
+<div id = "chart"></div>
+<div id = "legend">
+  <div id = "locationL"></div>
+  <div id = "otherL"></div>
+</div>
 <div id = "header">
     <div id = "title">Patterns </div>
-    <div id = "subtitle">Assessing Locations for Placement of New Schools in Cambridge</div>
-</div>
+    <div id = "subtitle">Mapping the Context of Potential Wildflower Schools in Cambridge</div>
 
 <!--  
 <div id = "description"></div>
@@ -67,10 +70,11 @@
   var bikeShareDistances = "data/bikeshare_halfmile.json"
   var openspaceDistances = "data/openspace_tenthmile.json"
 
-  var bikeShareTraffic ="coffee_data/bikeShare_traffic.json"
-  var businessTypes ="coffee_data/cambridge_businessTypes_count.json"
+  var competition ="data/competition.json"
+  var complementary ="data/complementary.json"
 </script>
 
+<script src="businessType_colors.js"></script>
 <script src="ecosystem_schools.js"></script>
 	
 </body>
