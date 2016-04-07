@@ -11,20 +11,53 @@
 	<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
     <script src="http://d3js.org/queue.v1.min.js"></script>
 	<script src="static/javascripts/jquery-ui.min.js"></script>
-	<script src="static/javascripts/jquery-ui.min.js"></script>
-	<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 	<link href='http://fonts.googleapis.com/css?family=EB+Garamond' rel='stylesheet' type='text/css'>
 
 	<link rel="stylesheet" type="text/css" href="static/stylesheets/placement.css"> </style>
 	
      
 </head>
+<script>
 
+$(document).ready(function(){
+    $("#hide").click(function(){
+      $("#locationL").hide();
+      $("#otherL").hide();
+      $("#legend").hide();
+      $("#show").show();
+      $("#hide").hide();        
+    });
+    $("#show").click(function(){
+        $("#locationL").show();
+        $("#otherL").show();
+        $("#legend").show();
+        $("#show").hide();
+        $("#hide").show();    
+    });
+    $("#hideR").click(function(){
+      $("#rankings").hide();
+      $("#rankings table").hide();
+      $("#rankings p").hide();
+      $("#showR").show();
+      $("#hideR").hide();        
+    });
+    $("#showR").click(function(){
+      $("#rankings").show();
+      $("#rankings table").show();
+      $("#rankings p").show();
+        $("#showR").hide();
+        $("#hideR").show();    
+    });
+});
+</script>
 <body>
+
 <div id = "map"></div>
 <div id = "chart"></div>
 <div id = "rankings">
-  Rankings: Click to Sort
+ 
+  <p>Rankings: Click headers to Sort</p>
   <table>
     <thead>
       <tr>
@@ -39,9 +72,20 @@
     </tbody>
   </table>
 </div>
+<div id = "buttons">
+  <div id="hide">Hide Legend</div>
+  <div id="show">Show Legend</div>
+  <div id="hideR">Hide Ranking</div>
+  <div id="showR">Show Ranking</div>
+  <div id="hideR">Hide Text</div>
+  <div id="showR">Show Text</div>
+</div>
 <div id = "legend">
   <div id = "locationL"></div>
   <div id = "otherL"></div>
+</div>
+<div id = "text">
+  Everything in the city is dependent on its context...
 </div>
 <div id = "header">
     <div id = "title">Patterns </div>
@@ -76,9 +120,12 @@
 <script type="text/javascript" charset="utf-8">
   var outline = "data/cambridge.geojson"
   var streets = "data/streets.geojson"
-
-
+var somervile = "data/somervile.geojson"
+var boston = "data/boston.geojson"
+var brookline = "data/brookline.geojson"
+  
   var buildingsDistances = "data/buildings_tenthmile.json"
+    
   var potentialLocation = "data/locationsForSchools.csv"
   var trees = "data/trees_quartermile.json"
   var businesses ="data/businesses_quartermile.json"
@@ -88,6 +135,7 @@
 
   var competition ="data/competition.json"
   var complementary ="data/complementary.json"
+  var water = "data/WaterBodies.geojson"
 </script>
 
 <script src="businessType_colors.js"></script>

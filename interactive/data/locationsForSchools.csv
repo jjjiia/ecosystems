@@ -1,13 +1,12 @@
 id,address,lat,lng,size,rent,type,description
-1,1000 Cambridge Street,42.37266,-71.09357,1000,4000,street retail,"Prime location with great visibility and high traffic. Ideal for a Bank or Financial Services company, former banking facility with drive through teller, counter for retail operations."
-2,1197 Cambridge St,42.373299,-71.097315,916,negotiable,street retail,"Prime retail location with great visibility, high traffic, at Inman Square. Extra space in the basement."
-3,222 Third Street,42.367152,-71.080197,1500,negotiable,Office Building,1500 Square Foot brick and beam office in the desirable American Twine Building.
-4,57 JFK Street,42.372119,-71.120894,3906,negotiable,street retail,"Mixed use Redevelopment of Landmark Harvard Square Building. 3,906 SF exisiting Maharaja Restaurant."
-5,2368 - 2380 Massachusetts Ave,42.396727,-71.129894,2640,18730/12,street retail,$4120/monthRetail store-front on the first floor with office suites on the ground level. Dramatic atrium leads to an oak staircase emptying into lobby area with individual tenant mailboxes. Close to Porter Square and a short walk Davis Square Redli
-6,11 First Street,42.370469,-71.077147,1553,negotiable,street retail,The site is located directly across the street from Lechmere Station on the MBTA Green Line as well as across from the NorthPoint Development site.
-7,275 Third St,42.365945,-71.082568,4000,45000/12,Office Building,Landmark property located in the corner of Binney and Third St (Kendall Sq)
-8,1000 Cambridge Street,42.37266,-71.09357,1300,negotiable,street retail,Corner unit with great visibility in a high traffic location close to Inman Square. Ideal for a Bank or Financial Services company with drive through and pre-configured teller station. Space also includes a kitchen area and half bathroom.
-9,366 Broadway,42.370588,-71.104502,1085,42000/12,street retail,The space is currently being occupied by a yoga studio. The space has a really nice deck in the back. The landlord is planning on renovating the facade of the building. Tenant is responsible for utilities.
-10,699 Mount Auburn Street,42.37512,-71.14882,1851,upon request,street retail,
-11,50 jfk st,42.372008,-71.120381,1200,upon request,street retail,
-12,"30 Cambridgepark Drive,",42.39431,-71.142906,1890,30*1890/12,street retail,"Retail/Medical/Ideal convenience shop/hair salon/PT, etc. Ground floor of 312 Unit luxury Equity Residential community. Across from Alewife T stop.Highly visible location at intersection of Rte. 2 and Alewife Brook Parkway.Easy access to Rte 93 & 128, the Mass Pike and downtown Boston."
+1,11 First Street,42.370469,-71.077147,1553,negotiable,street retail,The site is located directly across the street from Lechmere Station on the MBTA Green Line as well as across from the NorthPoint Development site.
+2,222 Third Street,42.367152,-71.080197,1500,negotiable,Office Building,1500 Square Foot brick and beam office in the desirable American Twine Building.
+3,275 Third St,42.365945,-71.082568,4000,45000/12,Office Building,Landmark property located in the corner of Binney and Third St (Kendall Sq)
+4,1000 Cambridge Street,42.37266,-71.09357,1000,4000,street retail,"Prime location with great visibility and high traffic. Ideal for a Bank or Financial Services company, former banking facility with drive through teller, counter for retail operations."
+5,1197 Cambridge St,42.373299,-71.097315,916,negotiable,street retail,"Prime retail location with great visibility, high traffic, at Inman Square. Extra space in the basement."
+6,366 Broadway,42.370588,-71.104502,1085,42000/12,street retail,The space is currently being occupied by a yoga studio. The space has a really nice deck in the back. The landlord is planning on renovating the facade of the building. Tenant is responsible for utilities.
+7,50 jfk st,42.372008,-71.119,1200,upon request,street retail,
+8,57 JFK Street,42.372119,-71.120894,3906,negotiable,street retail,"Mixed use Redevelopment of Landmark Harvard Square Building. 3,906 SF exisiting Maharaja Restaurant."
+9,2368 - 2380 Massachusetts Ave,42.396727,-71.129894,2640,18730/12,street retail,$4120/monthRetail store-front on the first floor with office suites on the ground level. Dramatic atrium leads to an oak staircase emptying into lobby area with individual tenant mailboxes. Close to Porter Square and a short walk Davis Square Redli
+10,"30 Cambridgepark Drive,",42.39431,-71.142906,1890,30*1890/12,street retail,"Retail/Medical/Ideal convenience shop/hair salon/PT, etc. Ground floor of 312 Unit luxury Equity Residential community. Across from Alewife T stop.Highly visible location at intersection of Rte. 2 and Alewife Brook Parkway.Easy access to Rte 93 & 128, the Mass Pike and downtown Boston."
+11,699 Mount Auburn Street,42.37512,-71.14882,1851,upon request,street retail,
