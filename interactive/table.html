@@ -69,6 +69,7 @@ d3.csv("states.csv", function(error, states) {
   });
 console.log(ages)
   d3.selectAll("thead td").data(ages).on("click", function(k) {
+    console.log(k)
     tr.sort(function(a, b) { return (b[k] / b.Total) - (a[k] / a.Total); });
   });
 console.log(states)

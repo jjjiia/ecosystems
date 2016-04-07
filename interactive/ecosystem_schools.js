@@ -39,12 +39,14 @@ var zoom = d3.behavior.zoom()
     .on("zoom", zoomed);
 function dataDidLoad(error,outline,streets,busDistances,bikeShareDistances,businesses,trees,buildingsDistances,potentialLocation,openspaceDistances,competition,complementary) {
     var mapSvg = d3.select("#map").append("svg").attr("width",x).attr("height",y)
-
-
     drawBuildings(outline,mapSvg)
     drawBuildings(streets,mapSvg)
     var mapSvg = d3.select("#map svg").call(zoom)
-
+    var rankingData = {}
+    var rankingArray = []
+    var treeScale = d3.scale.linear().domain([0,1000]).range([0,40])
+    
+    
     for(var l in potentialLocation){
         var locationName = potentialLocation[l].id
         var locationClass = "_"+locationName
@@ -56,11 +58,50 @@ function dataDidLoad(error,outline,streets,busDistances,bikeShareDistances,busin
         drawEntitiesByLocation(busDistances[locationName].stops,locationClass,["#000"],5,0,4)
         drawRectByLocation(competition[locationName].buildings,locationClass,["black"],5,0,8,"triangle-down")
         drawRectByLocation(complementary[locationName].buildings,locationClass,["black"],5,0,8,"triangle-up")
+    
+        rankingData[l]={}
+        rankingData[l]["name"]=String(parseInt(l)+1)
+        rankingData[l]["openSpace"]=Object.keys(openspaceDistances[locationName].buildings).length
+        rankingData[l]["trees"]=treeScale(Object.keys(trees[locationName].trees).length)
+        rankingData[l]["business"]=Object.keys(businesses[locationName].businesses).length
+        rankingData[l]["bike"]=Object.keys(bikeShareDistances[locationName].routes).length
+        console.log(rankingData[l]["bike"])
+
+        rankingArray.push(rankingData[l])
     }
     drawLocations(potentialLocation)
     drawBusinessColorKey()
+    var keys = ["trees","bike","openSpace","business"]
+    drawRankings(rankingArray)
    // var tableData = formatTable()
    // drawTable(tableData)
+}
+function drawRankings(data){    
+    var keys = d3.keys(data[0]).filter(function(key) {
+      return key != "name";
+    });
+    
+    d3.selectAll("thead td").data(keys).on("click", function(k) {
+        console.log(k)
+      tr.sort(function(a, b) { console.log([b,a]); return b[k] - a[k]; });
+      console.log(tr)
+    });
+  var tr = d3.select("tbody").selectAll("tr")
+      .data(data)
+    .enter().append("tr");
+    
+    tr.append("th")
+        .text(function(d) {return d.name; });
+
+    tr.selectAll("td")
+        .data(function(d) {return keys.map(function(k) { return d[k]; }); })
+        .enter().append("td").append("svg")
+        .attr("width", 60)
+        .attr("height", 14)
+        .append("rect")
+        .attr("height", 14)
+        .attr("width", function(d) {return d; })
+        .attr("fill","#000")
 }
 function formatTable(){
     var keys = ["tree","bus","bike","buildings","Total"]
@@ -151,8 +192,7 @@ function drawBusinessColorKey(){
         .attr("xlink:href","x.png").attr("x",10).attr("y",18).attr("width",15).attr("height",15)
     
     var legend = d3.select("#otherL").append("svg").attr("width",200).attr("height",400)
-    console.log(businessTypeColorsArray)
-    console.log(colorsCategories)
+   
     var catArray = []
     for(var cat in colorsCategories){
         catArray.push([cat,colorsCategories[cat]])
@@ -193,7 +233,7 @@ function drawBusinessColorKey(){
     legend.selectAll(".legend")
     .data(catArray).enter().append("circle")
     .attr("cx",20)
-    .attr("cy",function(d,i){console.log(i);return i*20+20})
+    .attr("cy",function(d,i){return i*20+20})
     .attr("r",5)
     
     .attr("fill",function(d){
@@ -215,26 +255,29 @@ function drawLocations(locationData,locationClass){
     mapSvg.selectAll(".circle")
         .data(locationData)
         .enter()
-        .append("svg:image")
-        .attr("xlink:href","x.png")
-        .attr("width",15)
-        .attr("height",15)
+        .append("circle")
+        .attr("r",14)
+    //    .append("svg:image")
+     //   .attr("xlink:href","x.png")
+       // .attr("width",15)
+    //    .attr("height",15)
         //.attr("opacity",.5)
         .attr("class",function(d){
             return "locations"})
-        .attr("x",function(d){
+        .attr("cx",function(d){
             var lat = parseFloat(d.lat)
             var lng = parseFloat(d.lng)
             //to get projected dot position, use this basic formula
             var projectedLng = projection([lng,lat])[0]
             return projectedLng
         })
-        .attr("y",function(d){
+        .attr("cy",function(d){
             var lat = parseFloat(d.lat)
             var lng = parseFloat(d.lng)
             var projectedLat = projection([lng,lat])[1]
             return projectedLat
         })
+        .attr("fill","black")
         .on("click",function(d){
             d3.selectAll("#map circle").transition().style("opacity",0)
             d3.selectAll("#map rect").transition().style("opacity",0)
@@ -245,6 +288,44 @@ function drawLocations(locationData,locationClass){
             d3.select(this).transition().duration(500).style("opacity",1)
             //d3.selectAll("."+cleanString(d.name)).transition().duration(500).attr("width",15)
         })
+        .attr("cursor","pointer")
+        
+        
+    mapSvg.selectAll(".text")
+        .data(locationData)
+        .enter()
+        .append("text")
+        .attr("text-anchor","center")
+        .text(function(d){return d.id})
+        .attr("class",function(d){
+            return "locations"})
+        .attr("x",function(d){
+            var lat = parseFloat(d.lat)
+            var lng = parseFloat(d.lng)
+            //to get projected dot position, use this basic formula
+            var projectedLng = projection([lng,lat])[0]
+            return projectedLng-6
+        })
+        .attr("y",function(d){
+            var lat = parseFloat(d.lat)
+            var lng = parseFloat(d.lng)
+            var projectedLat = projection([lng,lat])[1]
+            return projectedLat+5
+        })
+        .attr("fill","#fff")
+        .on("click",function(d){
+            d3.selectAll("#map circle").transition().style("opacity",0)
+            d3.selectAll("#map rect").transition().style("opacity",0)
+            d3.selectAll("#map path").attr("opacity",0)
+            d3.selectAll("._"+d.id).transition().duration(500).delay(function(d,i){ return i}).attr("opacity",.7)
+            
+            d3.selectAll("#map .locations").transition().duration(500).attr("opacity",.3)
+            d3.selectAll("text").transition().duration(500).attr("opacity",1)
+            
+            d3.select(this).transition().duration(500).style("opacity",1)
+            //d3.selectAll("."+cleanString(d.name)).transition().duration(500).attr("width",15)
+        })
+        .style("font-family","Helvetica")
         .attr("cursor","pointer")
 }
 function drawBuildingsByCoffee(buildings,className,color){
@@ -405,19 +486,19 @@ function drawRectByLocation(busData,className,color,delay,opacity,radius,symbolT
             var projectedLat = projection([lng,lat])[1]
             return "translate(" + projectedLng + "," + projectedLat + ")"
         })
-       // .attr("x",function(d){
-       //     var lat = parseFloat(d.lat)
-       //     var lng = parseFloat(d.lng)
-       //     //to get projected dot position, use this basic formula
-       //     var projectedLng = projection([lng,lat])[0]
-       //     return projectedLng
-       // })
-       // .attr("y",function(d){
-       //     var lat = parseFloat(d.lat)
-       //     var lng = parseFloat(d.lng)
-       //     var projectedLat = projection([lng,lat])[1]
-       //     return projectedLat
-       // })
+        //.attr("x",function(d){
+        //    var lat = parseFloat(d.lat)
+        //    var lng = parseFloat(d.lng)
+        //    //to get projected dot position, use this basic formula
+        //    var projectedLng = projection([lng,lat])[0]
+        //    return projectedLng
+        //})
+        //.attr("y",function(d){
+        //    var lat = parseFloat(d.lat)
+        //    var lng = parseFloat(d.lng)
+        //    var projectedLat = projection([lng,lat])[1]
+        //    return projectedLat
+        //})
 } 
 function jsonToArray(data){
     var newArray = []
