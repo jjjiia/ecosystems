@@ -60,7 +60,7 @@ function dataDidLoad(error,outline,streets,brookline,somervile,boston,busDistanc
         drawBike(bikeShareDistances[locationName].routes,locationClass)
         
         drawBuildingsByCoffee(buildingsDistances[locationName].buildings,locationClass,null)
-        drawBuildingsByCoffee(openspaceDistances[locationName].buildings,locationClass,"green")
+      //  drawBuildingsByCoffee(openspaceDistances[locationName].buildings,locationClass,"green")
         
         drawEntitiesByLocation(trees[locationName].trees,locationClass,treeColors,4,0,null)
         drawEntitiesByLocation(businesses[locationName].businesses,locationClass,"business",4,0,1)
@@ -200,7 +200,7 @@ function drawBusinessColorKey(){
     locationL.append("svg:image")
         .attr("xlink:href","x.png").attr("x",10).attr("y",18).attr("width",15).attr("height",15)
     
-    var legend = d3.select("#otherL").append("svg").attr("width",200).attr("height",400)
+    var legend = d3.select("#otherL").append("svg").attr("width",200).attr("height",450)
    
     var catArray = []
     for(var cat in colorsCategories){
@@ -228,16 +228,16 @@ function drawBusinessColorKey(){
     
     legend.append("path")      
         .attr("d",d3.svg.symbol().type("triangle-down"))
-        .attr("transform","translate(20,200)")
+        .attr("transform","translate(20,400)")
         .attr("fill","#000")
         .attr("class","schoolLegend")
     legend.append("path")      
         .attr("d",d3.svg.symbol().type("triangle-up"))
-        .attr("transform","translate(20,220)")
+        .attr("transform","translate(20,420)")
         .attr("fill","#000")
         .attr("class","schoolLegend")
-    legend.append("text").text("competing schools").attr("x",30).attr("y",204)
-    legend.append("text").text("complementary schools").attr("x",30).attr("y",224)
+    legend.append("text").text("competing schools").attr("x",30).attr("y",404)
+    legend.append("text").text("complementary schools").attr("x",30).attr("y",424)
     
     legend.selectAll(".legend")
     .data(catArray).enter().append("circle")
@@ -356,21 +356,18 @@ function drawLocations(locationData,locationClass){
         .attr("cursor","pointer")
 }
 function drawBuildingsByCoffee(buildings,className,color){
-    console.log(buildings)
     var buildingsArray = jsonToArray(buildings)
     for(var b in buildingsArray){
         var coordinates = buildingsArray[b].coordinates
         var distance = buildingsArray[b].distance
         var height = buildingsArray[b].height
         drawEachBuilding(coordinates,height,className,color)
-        console.log(className)
     }
 }
 function drawEachBuilding(coordinates,height,className,color){
     var dScale = d3.scale.linear().domain([0,.20]).range([.7,0])
     var w = window
     var opacityScale = d3.scale.linear().domain([2,12]).range(["#aaa","#000"])
-    console.log(className)
   //  console.log([height,opacityScale(height)])
     x = w.innerWidth || e.clientWidth || g.clientWidth;
     y = w.innerHeight|| e.clientHeight|| g.clientHeight;
@@ -435,7 +432,7 @@ function drawPath(data,className){
           .attr("fill","none")
           .attr("stroke","#000")
           .attr("stroke-width",1)
-          .attr("opacity",0.4)
+          .attr("opacity",0)
           .attr("class",className)
 }
 function drawEntitiesByLocation(busData,className,color,delay,opacity,radius){
@@ -514,13 +511,13 @@ mapSvg.call(tip);
         .attr("xlink:href",symbolType+".png")
         .attr("width",10)
         .attr("height",10)
-        .attr("opacity",.5)
+        .attr("opacity",0)
         .attr("width",20)
         .attr("fill",function(d,i){
             return color
             return dScale(d.distance)
         })
-        .attr("opacity",function(d){return .1})
+        .attr("opacity",function(d){return .7})
         .attr("class",function(d){return "triangles"})
       //  .attr("x",function(d){
       //      var lat = parseFloat(d.lat)
